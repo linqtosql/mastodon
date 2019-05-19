@@ -312,12 +312,59 @@ RSpec.describe Formatter do
       end
 
       context do
-        subject do
-          status = Fabricate(:status, text: text, uri: nil)
-          Formatter.instance.format(status)
-        end
+        let(:status) { Fabricate(:status, text: text, uri: nil) }
+
+        subject { Formatter.instance.format(status) }
 
         include_examples 'encode and link URLs'
+
+        context 'given text surrounded by *' do
+          let(:text) { 'Foo *bar*' }
+
+          it 'creates emphasis' do
+            is_expected.to include '<em>bar</em>'
+          end
+        end
+
+        context 'given text surrounded by **' do
+          let(:text) { 'Foo **bar**' }
+
+          it 'creates strong emphasis' do
+            is_expected.to include '<strong>bar</strong>'
+          end
+        end
+
+        context 'given XSS surrounded by *' do
+          let(:text) { 'Foo *<script /> bar*' }
+
+          it 'escapes HTML in emphasis' do
+            is_expected.to include '<em>&lt;script /&gt; bar</em>'
+          end
+        end
+
+        context 'given text surrounded by `' do
+          let(:text) { 'Foo `bar`' }
+
+          it 'creates a code span' do
+            is_expected.to include '<code>bar</code>'
+          end
+        end
+
+        context 'given a mention surrounded by `' do
+          let(:status) { Fabricate(:status, text: 'Here is `@alice foo` for example', mentions: [ Fabricate(:mention, account: local_account) ]) }
+
+          it 'creates a code span with unlinked mention' do
+            is_expected.to include '<code>@alice foo</code>'
+          end
+        end
+
+        context 'given a hashtag surrounded by `' do
+          let(:text) { 'Foo `bar #baz`' }
+
+          it 'creates a code span with unlinked hashtag' do
+            is_expected.to include '<code>bar #baz</code>'
+          end
+        end
       end
 
       context 'given a post with custom_emojify option' do

@@ -38,6 +38,7 @@ class Formatter
     html = "RT @#{prepend_reblog} #{html}" if prepend_reblog
     html = encode_and_link_urls(html, linkable_accounts)
     html = encode_custom_emojis(html, status.emojis, options[:autoplay]) if options[:custom_emojify]
+    html = Kramdown::Document.new(html, input: :mastodon, entity_output: :as_input).to_html
     html = simple_format(html, {}, sanitize: false)
     html = html.delete("\n")
 

@@ -20,7 +20,7 @@ class Sanitize
     end
 
     MASTODON_STRICT ||= freeze_config(
-      elements: %w(p br span a),
+      elements: %w(p br span a em strong code),
 
       attributes: {
         'a'    => %w(href rel class),
